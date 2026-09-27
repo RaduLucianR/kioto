@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
 pub struct Instant {
     instant: std::time::Instant,
 }
@@ -14,6 +14,10 @@ impl Instant {
         Instant {
             instant: std_instant,
         }
+    }
+
+    pub fn saturating_duration_since(self, earlier: Instant) -> std::time::Duration {
+        self.instant.saturating_duration_since(earlier.instant)
     }
 }
 

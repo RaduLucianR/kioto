@@ -3,6 +3,17 @@ name = "kioto"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "kioto"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kioto-demo"
+path = "src/main.rs"
+
 [dependencies]
-futures = "0.3.34"
-mio = { version = "1.2.2", features = ["net", "os-poll"] }
+mio = { version = "=1.2.0", features = ["net", "os-poll"] }
+tracing = { version = "0.1.41", features = [
+  "max_level_trace",
+  "release_max_level_debug",
+] }
