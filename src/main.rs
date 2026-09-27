@@ -1,4 +1,3 @@
-mod kioto;
 
 use std::future::Future;
 use std::io;
@@ -15,7 +14,7 @@ async fn my_async_func() {
     println!("Now is: {:?}", delayed_now);
     KiotoTcpStream::read().await;
     // let start = kioto::time::Instant::now();
-    // let mut interval = kioto::time::interval_at(start, Duration::from_millis(5000));
+    // let mut interval = kioto::time::interval_at(start + Duration::from_millis(1000), Duration::from_millis(5000));
     // interval.tick().await;
     println!("async func completed!");
 }

@@ -1,8 +1,7 @@
 use super::Instant;
-use crate::kioto::runtime::reactor;
+use crate::runtime::reactor;
 use core::future::poll_fn;
 use core::task::Context;
-use mio::Interest;
 use std::task::Poll;
 use std::time::Duration;
 
@@ -11,36 +10,27 @@ pub enum MissedTickBehavior {
 }
 
 pub struct Interval {
-    is_first_call: bool,
-    start: Instant,
+    deadline: Instant,
     period: Duration,
     behavior: MissedTickBehavior,
     id: usize,
 }
 
 impl Interval {
-    /// Returns Poll::Ready when the time passed for a tick
     pub async fn tick(&mut self) -> Instant {
         let instant_future = poll_fn(|cx| self.poll_tick(cx));
         instant_future.await
     }
 
     pub fn poll_tick(&mut self, cx: &mut Context<'_>) -> Poll<Instant> {
-        let id = self.id;
-
-        if self.is_first_call {
-            self.is_first_call = false;
-            reactor::reactor().set_waker(cx, self.id);
-        }
-
         let now = Instant::now();
 
-        if now > self.start + self.period {
-            // reactor::reactor().deregister(&mut self.source, id);
+        if now >= self.deadline {
+            self.deadline = now + self.period;
             return Poll::Ready(now);
         }
 
-        reactor::reactor().set_waker(cx, self.id);
+        reactor::reactor().register_timer(self.deadline, self.id, cx.waker().clone());
         Poll::Pending
     }
 
@@ -52,12 +42,14 @@ impl Interval {
 
 pub fn interval_at(start: Instant, period: Duration) -> Interval {
     let id = reactor::reactor().next_id();
-    // reactor::reactor().register(source, Interest::READABLE, id);
     Interval {
-        is_first_call: true,
-        start,
+        deadline: start,
         period,
         behavior: MissedTickBehavior::Delay,
         id,
     }
+}
+
+pub fn interval(period: Duration) -> Interval {
+    interval_at(Instant::now(), period)
 }
